@@ -20,6 +20,13 @@ import {
 } from "recharts";
 import { getDaysInMonth, startOfMonth, getDay } from "date-fns";
 import { useDashboard } from "@/context/DashboardContext";
+import {
+  Tooltip as TooltipUI,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Check, X } from "lucide-react";
 
 type ViewType = "weekly" | "monthly" | "calendar";
 
@@ -266,14 +273,45 @@ function CalendarHeatmap() {
           const percentage = dayData?.percentage ?? 0;
 
           return (
-            <div
-              key={day}
-              className="aspect-square rounded-md flex items-center justify-center text-xs cursor-pointer hover:ring-2 hover:ring-primary"
-              style={{ backgroundColor: getHeatColor(percentage) }}
-              title={`Day ${day}: ${percentage}%`}
-            >
-              {parseInt(day)}
-            </div>
+            <TooltipProvider key={day} delayDuration={100}>
+              <TooltipUI>
+                <TooltipTrigger
+                  className="aspect-square rounded-md flex items-center justify-center text-xs cursor-pointer hover:ring-2 hover:ring-primary"
+                  style={{ backgroundColor: getHeatColor(percentage) }}
+                >
+                  {parseInt(day)}
+                </TooltipTrigger>
+                <TooltipContent className="p-3">
+                  <div className="space-y-2">
+                    <p className="font-medium">Day {parseInt(day)}</p>
+                    {!dayData || dayData.habits.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">No habits</p>
+                    ) : (
+                      <>
+                        <div className="space-y-1">
+                          {dayData.habits.map((habit) => (
+                            <div
+                              key={habit._id}
+                              className="flex items-center gap-2 text-xs"
+                            >
+                              {habit.completed ? (
+                                <Check className="size-3 text-green-500" />
+                              ) : (
+                                <X className="size-3 text-red-500" />
+                              )}
+                              <span>{habit.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground pt-1 border-t">
+                          {percentage}% completion
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </TooltipContent>
+              </TooltipUI>
+            </TooltipProvider>
           );
         })}
       </div>

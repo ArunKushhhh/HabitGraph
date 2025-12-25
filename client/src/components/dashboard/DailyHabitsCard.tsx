@@ -1,4 +1,4 @@
-import { Loader2, SunDim } from "lucide-react";
+import { Loader2, SunDim, Trash2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -16,6 +16,20 @@ import { Checkbox } from "../ui/checkbox";
 import { Progress } from "../ui/progress";
 import { AddHabitDialog } from "./AddHabitDialog";
 import { useDashboard } from "@/context/DashboardContext";
+import { habitService } from "@/services/habit.service";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
+import { Button, buttonVariants } from "../ui/button";
 
 export function DailyHabitsCard() {
   const { triggerRefresh } = useDashboard();
@@ -59,6 +73,21 @@ export function DailyHabitsCard() {
       console.error("Failed to toggle habit");
     }
   }
+
+  async function handleDelete(habitId: string) {
+    const previousHabits = [...habits];
+    setHabits((prev) => prev.filter((h) => h._id !== habitId));
+    try {
+      await habitService.delete(habitId);
+      fetchDashboardData();
+      triggerRefresh();
+      toast.success("Habit deleted successfully");
+    } catch (error) {
+      setHabits(previousHabits);
+      console.error("Failed to delete habit");
+      toast.error("Failed to delete habit");
+    }
+  }
   return (
     <Card className="gap-2 bg-linear-to-br from-background to-card">
       <CardHeader className="gap-1">
@@ -86,18 +115,50 @@ export function DailyHabitsCard() {
           </div>
         )}
         {habits.map((habit) => (
-          <div key={habit._id} className="flex items-center gap-2 py-2 text-sm">
-            <Checkbox
-              checked={habit.completed}
-              onCheckedChange={() => handleToggle(habit._id, habit.completed)}
-            />
-            <span
-              className={
-                habit.completed ? "line-through text-muted-foreground" : ""
-              }
-            >
-              {habit.icon} {habit.name}
-            </span>
+          <div
+            key={habit._id}
+            className="flex items-center justify-between py-2 text-sm group"
+          >
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={habit.completed}
+                onCheckedChange={() => handleToggle(habit._id, habit.completed)}
+              />
+              <span
+                className={
+                  habit.completed ? "line-through text-muted-foreground" : ""
+                }
+              >
+                {habit.icon} {habit.name}
+              </span>
+            </div>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Trash2 className="size-3 text-destructive" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Habit</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete "{habit.name}"? This action
+                    cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction className={buttonVariants({variant:"destructive"})} onClick={() => handleDelete(habit._id)}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         ))}
       </CardContent>
