@@ -157,10 +157,6 @@ HabitGraph/
 | GET    | `/api/analytics/rings`     | Habit ring data  |
 | GET    | `/api/analytics/calendar`  | Calendar heatmap |
 
-## 📸 Screenshots
-
-_Coming soon_
-
 ## 📝 License
 
 MIT License
