@@ -21,14 +21,11 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { useState } from "react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   if (isAuthenticated) {
     return <Navigate to="/" />;
@@ -43,22 +40,14 @@ export default function LoginPage() {
   });
 
   async function handleSubmit(data: z.infer<typeof loginSchema>) {
-    setError(null);
-    setIsSubmitting(true);
-
     try {
       await login(data.email, data.password);
-      toast.success("Login successfull");
+      toast.success("Login successful");
       navigate("/");
     } catch (error: any) {
-      setError(
-        error.response?.data?.message || "Login failed. Please try again."
-      );
       toast.error(
         error.response?.data?.message || "Login failed. Please try again."
       );
-    } finally {
-      setIsSubmitting(false);
     }
   }
 

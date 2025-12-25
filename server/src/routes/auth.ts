@@ -237,4 +237,88 @@ router.get("/me", protect, async (req: AuthRequest, res: Response) => {
   });
 });
 
+// PUT /api/auth/profile - Update user profile (name)
+router.put(
+  "/profile",
+  protect,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const { name } = req.body;
+
+      if (!name || name.trim().length < 2) {
+        throw new ApiError("Name must be at least 2 characters", 400);
+      }
+
+      const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        { name: name.trim() },
+        { new: true }
+      );
+
+      if (!user) {
+        throw new ApiError("User not found", 404);
+      }
+
+      res.json({
+        success: true,
+        message: "Profile updated successfully",
+        data: {
+          user: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+          },
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// PUT /api/auth/password - Change password
+router.put(
+  "/password",
+  protect,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        throw new ApiError(
+          "Current password and new password are required",
+          400
+        );
+      }
+
+      if (newPassword.length < 6) {
+        throw new ApiError("New password must be at least 6 characters", 400);
+      }
+
+      // Get user with password
+      const user = await User.findById(req.user?._id).select("+password");
+      if (!user) {
+        throw new ApiError("User not found", 404);
+      }
+
+      // Verify current password
+      const isMatch = await user.comparePassword(currentPassword);
+      if (!isMatch) {
+        throw new ApiError("Current password is incorrect", 401);
+      }
+
+      // Update password (will be hashed by pre-save hook)
+      user.password = newPassword;
+      await user.save();
+
+      res.json({
+        success: true,
+        message: "Password changed successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default router;

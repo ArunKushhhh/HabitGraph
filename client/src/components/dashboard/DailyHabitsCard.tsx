@@ -1,4 +1,4 @@
-import { Loader2, SunDim, Trash2 } from "lucide-react";
+import { Loader2, Pencil, SunDim, Trash2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { Checkbox } from "../ui/checkbox";
 import { Progress } from "../ui/progress";
 import { AddHabitDialog } from "./AddHabitDialog";
+import { EditHabitDialog } from "./EditHabitDialog";
 import { useDashboard } from "@/context/DashboardContext";
 import { habitService } from "@/services/habit.service";
 import { toast } from "sonner";
@@ -34,6 +35,9 @@ import { Button, buttonVariants } from "../ui/button";
 export function DailyHabitsCard() {
   const { triggerRefresh } = useDashboard();
   const [habits, setHabits] = useState<HabitWithStatus[]>([]);
+  const [editingHabit, setEditingHabit] = useState<HabitWithStatus | null>(
+    null
+  );
   const [progress, setProgress] = useState({
     completed: 0,
     total: 0,
@@ -133,32 +137,48 @@ export function DailyHabitsCard() {
               </span>
             </div>
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="size-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 className="size-3 text-destructive" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Habit</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete "{habit.name}"? This action
-                    cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction className={buttonVariants({variant:"destructive"})} onClick={() => handleDelete(habit._id)}>
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <div className="flex items-center">
+              {/* Edit Button */}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => setEditingHabit(habit)}
+              >
+                <Pencil className="size-3" />
+              </Button>
+
+              {/* Delete Button */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="size-3 text-destructive" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Habit</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{habit.name}"? This
+                      action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className={buttonVariants({ variant: "destructive" })}
+                      onClick={() => handleDelete(habit._id)}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         ))}
       </CardContent>
@@ -168,6 +188,19 @@ export function DailyHabitsCard() {
         </p>
         <Progress value={progress.percentage} />
       </CardFooter>
+
+      {/* Edit Habit Dialog */}
+      {editingHabit && (
+        <EditHabitDialog
+          habit={editingHabit}
+          open={!!editingHabit}
+          onOpenChange={(open) => !open && setEditingHabit(null)}
+          onHabitUpdated={() => {
+            fetchDashboardData();
+            triggerRefresh();
+          }}
+        />
+      )}
     </Card>
   );
 }

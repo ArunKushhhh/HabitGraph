@@ -21,14 +21,11 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { useState } from "react";
 import { toast } from "sonner";
 
 export default function RegisterPage() {
   const { isAuthenticated, register } = useAuth();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   if (isAuthenticated) {
     return <Navigate to="/" />;
@@ -44,22 +41,15 @@ export default function RegisterPage() {
   });
 
   async function handleSubmit(data: z.infer<typeof registerSchema>) {
-    setError(null);
-    setIsSubmitting(true);
-
     try {
       await register(data.name, data.email, data.password);
-      toast.success("Register successfull");
+      toast.success("Registration successful");
       navigate("/");
     } catch (error: any) {
-      setError(
-        error.response?.data?.message || "Register failed. Please try again."
-      );
       toast.error(
-        error.response?.data?.message || "Register failed. Please try again."
+        error.response?.data?.message ||
+          "Registration failed. Please try again."
       );
-    } finally {
-      setIsSubmitting(false);
     }
   }
 

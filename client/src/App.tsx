@@ -4,6 +4,7 @@ import { Loader } from "./components/Loader";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import Dashboard from "./pages/Dashboard";
+import ProfilePage from "./pages/ProfilePage";
 
 const App = () => {
   const { isLoading, isAuthenticated } = useAuth();
@@ -20,6 +21,12 @@ const App = () => {
           path="/"
           element={
             isAuthenticated ? <Dashboard /> : <Navigate to="/auth/login" />
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            isAuthenticated ? <ProfilePage /> : <Navigate to="/auth/login" />
           }
         />
         <Route path="*" element={<Navigate to="/" />} />

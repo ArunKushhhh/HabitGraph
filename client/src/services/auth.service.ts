@@ -16,4 +16,11 @@ export const authService = {
   getMe: () => api.get<ApiResponse<{ user: User }>>("/auth/me"),
   refresh: () =>
     api.post<ApiResponse<{ accessToken: string }>>("/auth/refresh"),
+  updateProfile: (name: string) =>
+    api.put<ApiResponse<{ user: User }>>("/auth/profile", { name }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.put<ApiResponse<null>>("/auth/password", {
+      currentPassword,
+      newPassword,
+    }),
 };
